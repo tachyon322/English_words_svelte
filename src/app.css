@@ -1,44 +1,63 @@
 @import "tailwindcss";
 
 @font-face {
-    font-family: Inter-Regular;
-    src: url(/fonts/Inter_Regular.ttf);
+  font-family: Inter-Regular;
+  src: url(/fonts/Inter_Regular.ttf);
 }
 
 @font-face {
-    font-family: Inter-Semibold;
-    src: url(/fonts/Inter_Semibold.ttf);
+  font-family: Inter-Semibold;
+  src: url(/fonts/Inter_Semibold.ttf);
 }
 
 @font-face {
-    font-family: Sunday;
-    src: url(/fonts/Sunday-Regular.otf);
+  font-family: Sunday;
+  src: url(/fonts/Sunday-Regular.otf);
 }
 
 h5 {
-    font-family: Sunday;
-    font-size: 50px;
+  font-family: Sunday;
+  font-size: 50px;
 }
 
 h1 {
-    font-family: Inter-Semibold;
+  font-family: Inter-Semibold;
 }
 
 h2 {
-    font-family: Inter-Regular;
-    font-size: 24px;
+  font-family: Inter-Regular;
+  font-size: 24px;
 }
 
 p {
-    font-family: Inter-Regular;
+  font-family: Inter-Regular;
 }
 
 .wide-wrap {
-    margin: 3px 10px;
+  margin: 3px 10px;
+}
+
+@media (min-width: 768px) {
+  .wide-wrap {
+    margin: 5px 60px;
   }
-  
-  @media (min-width: 768px) {
-    .wide-wrap {
-      margin: 5px 60px;
-    }
-  }
+}
+
+@plugin 'flowbite/plugin';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary-50: #fff5f2;
+  --color-primary-100: #fff1ee;
+  --color-primary-200: #ffe4de;
+  --color-primary-300: #ffd5cc;
+  --color-primary-400: #ffbcad;
+  --color-primary-500: #fe795d;
+  --color-primary-600: #ef562f;
+  --color-primary-700: #eb4f27;
+  --color-primary-800: #cc4522;
+  --color-primary-900: #a5371b;
+}
+
+@source "../node_modules/flowbite-svelte/dist";

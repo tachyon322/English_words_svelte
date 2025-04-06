@@ -1,4 +1,11 @@
 <script>
+  import { goto } from "$app/navigation";
+  import { authClient } from "$lib/auth/auth-client";
+  import {
+    Dropdown,
+    DropdownItem,
+    Button,
+  } from "flowbite-svelte";
   export let session;
 </script>
 
@@ -11,7 +18,10 @@
     <li></li>
   </ul>
 
-  <div class="flex items-center gap-2">
+  <Button
+    class="flex items-center gap-2 bg-transparent hover:bg-transparent cursor-pointer"
+    tag={"a"}
+  >
     <!-- Check if session and user image exists -->
     {#if session?.session?.user?.image}
       <img
@@ -26,6 +36,26 @@
       ></div>
     {/if}
     <!-- Display username if it exists -->
-    <p>{session?.session?.user?.name || ""}</p>
-  </div>
+    <p class="text-black">{session?.session?.user?.name || ""}</p>
+  </Button>
+  <Dropdown>
+    <DropdownItem>
+      <a href="/user">Профиль</a>
+    </DropdownItem>
+    <DropdownItem>
+      <a href="/settings">Настройки</a>
+    </DropdownItem>
+    <DropdownItem>
+      <button
+        on:click={async () =>
+          await authClient.signOut({
+            fetchOptions: {
+              onSuccess: () => {
+                goto("/auth/sign-in");
+              },
+            },
+          })}>Выйти</button
+      >
+    </DropdownItem>
+  </Dropdown>
 </div>
