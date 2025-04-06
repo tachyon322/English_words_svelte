@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+@font-face {
+    font-family: Inter-Regular;
+    src: url(/fonts/Inter_Regular.ttf);
+}
+
+@font-face {
+    font-family: Inter-Semibold;
+    src: url(/fonts/Inter_Semibold.ttf);
+}
+
+@font-face {
+    font-family: Sunday;
+    src: url(/fonts/Sunday-Regular.otf);
+}
+
+h5 {
+    font-family: Sunday;
+    font-size: 50px;
+}
+
+h1 {
+    font-family: Inter-Semibold;
+}
+
+h2 {
+    font-family: Inter-Regular;
+    font-size: 24px;
+}
+
+p {
+    font-family: Inter-Regular;
+}
+
+.wide-wrap {
+    margin: 3px 10px;
+  }
+  
+  @media (min-width: 768px) {
+    .wide-wrap {
+      margin: 5px 60px;
+    }
+  }
