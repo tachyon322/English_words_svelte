@@ -1,61 +1,52 @@
 <script>
   import { goto } from "$app/navigation";
   import { authClient } from "$lib/auth/auth-client";
-  import {
-    Dropdown,
-    DropdownItem,
-    Button,
-  } from "flowbite-svelte";
+  import { Dropdown, DropdownItem, Button } from "flowbite-svelte";
+
   export let session;
+  
+  // Normalize the session data structure
+  $: userData = session?.session?.user || session?.user || null;
 </script>
 
-<div class="flex items-center justify-between">
+<div class="flex items-center justify-between z-10">
   <a href="/home">
     <h2>Название</h2>
   </a>
-  <ul class="flex gap-3">
-    <li>Главная</li>
-    <li></li>
+
+  <ul class="flex items-center gap-10">
+    <li>Изучение</li>
+    <li>Подписка</li>
+    <li>О нас</li>
   </ul>
 
-  <Button
-    class="flex items-center gap-2 bg-transparent hover:bg-transparent cursor-pointer"
-    tag={"a"}
-  >
-    <!-- Check if session and user image exists -->
-    {#if session?.session?.user?.image}
-      <img
-        src={session.session.user.image}
-        alt="User profile"
-        class="rounded-full w-[40px] h-[40px] object-cover"
-      />
+  <div class="flex items-center gap-2">
+    {#if !userData}
+      <Button tag={"a"} href="/auth/sign-in">Войти</Button>
     {:else}
-      <!-- Placeholder if no image exists -->
-      <div
-        class="bg-gradient-to-r from-amber-500 to-blue-50 rounded-full w-[40px] h-[40px]"
-      ></div>
+      <div class="flex items-center gap-2 cursor-pointer">
+        {#if userData?.image}
+          <img src={userData.image} alt="avatar" class="w-10 h-10 rounded-full">
+        {/if}
+        <p class="text-black">
+          {userData?.name || ""}
+        </p>
+      </div>
+      <Dropdown>
+        <DropdownItem href="/user">Профиль</DropdownItem>
+        <DropdownItem href="/settings">Настройки</DropdownItem>
+        <DropdownItem class="text-red-400 cursor-pointer"
+          on:click={async () =>
+              await authClient.signOut({
+                fetchOptions: {
+                  onSuccess: () => {
+                    goto("/auth/sign-in");
+                  },
+                },
+              })}>Выйти
+        </DropdownItem>
+      </Dropdown>
     {/if}
-    <!-- Display username if it exists -->
-    <p class="text-black">{session?.session?.user?.name || ""}</p>
-  </Button>
-  <Dropdown>
-    <DropdownItem>
-      <a href="/user">Профиль</a>
-    </DropdownItem>
-    <DropdownItem>
-      <a href="/settings">Настройки</a>
-    </DropdownItem>
-    <DropdownItem>
-      <button
-        on:click={async () =>
-          await authClient.signOut({
-            fetchOptions: {
-              onSuccess: () => {
-                goto("/auth/sign-in");
-              },
-            },
-          })}>Выйти</button
-      >
-    </DropdownItem>
-  </Dropdown>
+  </div>
 </div>
+

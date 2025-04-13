@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,23 +7,50 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  User
+  Admin
+}
+
+enum PaymentStatus {
+  Pending
+  Completed
+  Failed
+}
+
+enum Difficulty {
+  Unknown
+  Easy
+  Medium
+  Hard
+}
+
 model User {
-  id            String    @default(cuid()) @unique
+  id            String  @id @default(cuid())
   name          String
   email         String
   emailVerified Boolean
   image         String?
-  createdAt     DateTime
-  updatedAt     DateTime
-  sessions      Session[]
-  accounts      Account[]
+  role          Role    @default(User)
+
+  points         Int?
+  currentStreak  Int?
+  lastActiveDate DateTime?
+
+  words          Word[]           @relation("wordToUser")
+  paidPlan       PaidPlan[]
+  paymentHistory PaymentHistory[]
+  createdAt      DateTime
+  updatedAt      DateTime
+  sessions       Session[]
+  accounts       Account[]
 
   @@unique([email])
   @@map("user")
 }
 
 model Subject {
-  id   String @default(cuid()) @unique
+  id   String @unique @default(cuid())
   name String
 }
 
@@ -71,4 +97,67 @@ model Verification {
   updatedAt  DateTime?
 
   @@map("verification")
+}
+
+model PaidPlan {
+  id        String           @id @default(cuid())
+  userId    String
+  until     DateTime?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  isActive  Boolean          @default(true)
+  metadata  Json?
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments  PaymentHistory[]
+
+  @@map("paidPlan")
+}
+
+model PaymentHistory {
+  id            String        @id @default(cuid())
+  userId        String
+  amount        Float
+  currency      String        @default("RUB")
+  paymentId     String?       @unique
+  paymentMethod String        @default("yookassa")
+  metadata      Json?
+  status        PaymentStatus @default(Completed)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  paidPlanId    String?
+  paidPlan      PaidPlan?     @relation(fields: [paidPlanId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("paymentHistory")
+}
+
+model Categories {
+  id   Int    @id
+  name String
+  word Word[]
+
+  @@map("categories")
+}
+
+model Word {
+  id         String       @id
+  name       String
+  categories Categories[]
+  collection Collection[]
+  user       User[]       @relation("wordToUser")
+  difficulty Difficulty   @default(Unknown)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@map("word")
+}
+
+model Collection {
+  id        String   @id
+  name      String
+  words     Word[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("collection")
 }

@@ -29,6 +29,7 @@
 		"@tailwindcss/vite": "^4.1.3",
 		"better-auth": "^1.2.5",
 		"flowbite-svelte": "^0.48.4",
+		"postgres": "^3.4.5",
 		"tailwindcss": "^4.1.3"
 	}
 }

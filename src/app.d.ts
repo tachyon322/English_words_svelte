@@ -8,7 +8,14 @@ declare global {
 		// interface PageState {}
 		// interface Platform {}
 		interface Locals {
-			session: { userId: string; username: string } | null; // Укажите тип вашей сессии
+			session: {
+				user: {
+					id: string,
+					name: string,
+					email: string,
+					image: string
+				}
+			 } | null; // Укажите тип вашей сессии
 		  }
 	}
 }
