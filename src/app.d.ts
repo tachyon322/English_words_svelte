@@ -14,6 +14,11 @@ declare global {
 					name: string,
 					email: string,
 					image: string
+					role: "User" | "Admin"
+					points: number
+					currentStreak: number
+					lastActiveDate: date
+					guideCompleted: boolean
 				}
 			 } | null; // Укажите тип вашей сессии
 		  }

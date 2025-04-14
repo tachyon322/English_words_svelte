@@ -18,7 +18,8 @@
         isLoading = true;
         try {
             await authClient.signIn.social({
-                provider
+                provider,
+                callbackURL: "/preferences"
             });
             console.log("Вход через: ", provider);
         } catch (error) {

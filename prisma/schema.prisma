@@ -33,25 +33,22 @@ model User {
   image         String?
   role          Role    @default(User)
 
-  points         Int?
-  currentStreak  Int?
+  points         Int       @default(0)
+  currentStreak  Int       @default(0)
   lastActiveDate DateTime?
+  guideCompleted Boolean   @default(false)
 
-  words          Word[]           @relation("wordToUser")
-  paidPlan       PaidPlan[]
-  paymentHistory PaymentHistory[]
-  createdAt      DateTime
-  updatedAt      DateTime
-  sessions       Session[]
-  accounts       Account[]
+  words           Word[]            @relation("wordToUser")
+  userPreferences UserPreferences[]
+  paidPlan        PaidPlan[]
+  paymentHistory  PaymentHistory[]
+  createdAt       DateTime
+  updatedAt       DateTime
+  sessions        Session[]
+  accounts        Account[]
 
   @@unique([email])
   @@map("user")
-}
-
-model Subject {
-  id   String @unique @default(cuid())
-  name String
 }
 
 model Session {
@@ -160,4 +157,14 @@ model Collection {
   updatedAt DateTime @updatedAt
 
   @@map("collection")
+}
+
+model UserPreferences {
+  id          String      @id
+  wordsPerDay Int
+  difficulty  Difficulty?
+  User        User?       @relation(fields: [userId], references: [id])
+  userId      String?
+
+  @@map("userPreferences")
 }

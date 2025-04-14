@@ -22,4 +22,31 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     },
   },
+  user: {
+    additionalFields: {
+      role: {
+        type: "string",
+        required: false,
+        defaultValue: "User",
+        input: false,
+      },
+      points: {
+        type: "number",
+        required: true,
+        defaultValue: 0,
+      },
+      currentStreak: {
+        type: "number",
+        required: true,
+        defaultValue: 0,
+      },
+      lastActiveDate: {
+        type: "date",
+        required: false,
+      },
+      guideCompleted: {
+        type: "boolean"
+      }
+    },
+  },
 });
