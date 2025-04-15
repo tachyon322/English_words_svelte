@@ -1,16 +1,21 @@
-import type { PageServerLoad } from "./$types";
-import { redirect } from "@sveltejs/kit";
+import { redirect } from '@sveltejs/kit';
+import type { PageServerLoad } from './$types';
+import { getUserWords, getUserStats } from '$lib/server/models/words';
 
 export const load: PageServerLoad = async ({ locals }) => {
-  const session = locals.session; // Берем сессию из locals
-
-  // Если сессии нет, перенаправляем на страницу входа
-  if (!session) {
-    throw redirect(302, "/auth/sign-in");
+  const session = locals.session;
+  
+  if (!session?.user) {
+    throw redirect(303, '/auth/sign-in');
   }
-
-  // Возвращаем сессию для +page.svelte
+  
+  const userId = session.user.id;
+  const words = await getUserWords(userId);
+  const stats = await getUserStats(userId);
+  
   return {
     session,
+    words,
+    stats
   };
 };
