@@ -7,54 +7,34 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  User
-  Admin
-}
-
-enum PaymentStatus {
-  Pending
-  Completed
-  Failed
-}
-
-enum Difficulty {
-  Unknown
-  Easy
-  Medium
-  Hard
-}
-
 model User {
-  id            String  @id @default(cuid())
-  name          String
-  email         String
-  emailVerified Boolean
-  image         String?
-  role          Role    @default(User)
-
-  points         Int       @default(0)
-  currentStreak  Int       @default(0)
-  lastActiveDate DateTime?
-  guideCompleted Boolean   @default(false)
-
-  words           Word[]            @relation("wordToUser")
-  userPreferences UserPreferences[]
-  paidPlan        PaidPlan[]
-  paymentHistory  PaymentHistory[]
+  id              String            @id @default(cuid())
+  name            String
+  email           String            @unique
+  emailVerified   Boolean
+  image           String?
+  role            Role              @default(User)
+  points          Int               @default(0)
+  currentStreak   Int               @default(0)
+  lastActiveDate  DateTime?
+  guideCompleted  Boolean           @default(false)
   createdAt       DateTime
   updatedAt       DateTime
-  sessions        Session[]
   accounts        Account[]
+  paidPlan        PaidPlan[]
+  paymentHistory  PaymentHistory[]
+  sessions        Session[]
+  userPreferences UserPreferences[]
+  collections     Collection[]      @relation("CollectionToUser")
+  userWords       UserWord[]        @relation // Новая связь с UserWord
 
-  @@unique([email])
   @@map("user")
 }
 
 model Session {
   id        String   @id
   expiresAt DateTime
-  token     String
+  token     String   @unique
   createdAt DateTime
   updatedAt DateTime
   ipAddress String?
@@ -62,7 +42,6 @@ model Session {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([token])
   @@map("session")
 }
 
@@ -71,7 +50,6 @@ model Account {
   accountId             String
   providerId            String
   userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
   refreshToken          String?
   idToken               String?
@@ -81,6 +59,7 @@ model Account {
   password              String?
   createdAt             DateTime
   updatedAt             DateTime
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("account")
 }
@@ -131,30 +110,53 @@ model PaymentHistory {
 model Categories {
   id   Int    @id
   name String
-  word Word[]
+  word Word[] @relation("CategoriesToWord")
 
   @@map("categories")
 }
 
 model Word {
-  id         String       @id
-  name       String
-  categories Categories[]
-  collection Collection[]
-  user       User[]       @relation("wordToUser")
-  difficulty Difficulty   @default(Unknown)
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
+  id                   Int          @id @default(autoincrement())
+  name                 String
+  translationToRussian String
+  difficulty           Difficulty   @default(Unknown)
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  categories           Categories[] @relation("CategoriesToWord")
+  collection           Collection[] @relation("CollectionToWord")
+  userWords            UserWord[]   @relation // Новая связь с UserWord
 
   @@map("word")
+}
+
+model UserWord {
+  id           String     @id @default(cuid())
+  userId       String
+  wordId       Int
+  status       WordStatus @default(Added) // Статус слова: Добавлено или Выучено
+  addedAt      DateTime   @default(now()) // Когда слово было добавлено
+  learnedAt    DateTime? // Когда слово было отмечено как выученное (если применимо)
+  progress     Int        @default(0) // Прогресс изучения (например, % или кол-во правильных ответов)
+  lastReviewed DateTime? // Дата последнего повторения
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  word         Word       @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, wordId]) // Гарантирует, что пользователь не может добавить одно слово дважды
+  @@map("userWord")
+}
+
+enum WordStatus {
+  Added // Слово добавлено для изучения
+  Learned // Слово выучено
 }
 
 model Collection {
   id        String   @id
   name      String
-  words     Word[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user      User[]   @relation("CollectionToUser")
+  words     Word[]   @relation("CollectionToWord")
 
   @@map("collection")
 }
@@ -163,8 +165,26 @@ model UserPreferences {
   id          String      @id
   wordsPerDay Int
   difficulty  Difficulty?
-  User        User?       @relation(fields: [userId], references: [id])
   userId      String?
+  User        User?       @relation(fields: [userId], references: [id])
 
   @@map("userPreferences")
+}
+
+enum Role {
+  User
+  Admin
+}
+
+enum PaymentStatus {
+  Pending
+  Completed
+  Failed
+}
+
+enum Difficulty {
+  Unknown
+  Easy
+  Medium
+  Hard
 }

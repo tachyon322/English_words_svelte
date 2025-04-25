@@ -2,22 +2,10 @@
   import Header from "$lib/components/base/Header.svelte";
   import { Image } from "@unpic/svelte/base";
   import { formatDistance } from 'date-fns';
+  import type { PageData } from "./$types";
 
-  export let data;
+  export let data: PageData;
   $: userData = data.session.user;
-  $: words = data.words || [];
-  $: stats = data.stats || { totalWords: 0, wordsByDifficulty: [], lastAddedWords: [] };
-
-  // Calculate total words by difficulty
-  $: difficultyStats = {
-    easy: stats.wordsByDifficulty?.find(d => d.difficulty === 'Easy')?.count || 0,
-    medium: stats.wordsByDifficulty?.find(d => d.difficulty === 'Medium')?.count || 0,
-    hard: stats.wordsByDifficulty?.find(d => d.difficulty === 'Hard')?.count || 0,
-    unknown: stats.wordsByDifficulty?.find(d => d.difficulty === 'Unknown')?.count || 0
-  };
-
-  // Total of non-unknown words for progress calculation
-  $: knownWords = difficultyStats.easy + difficultyStats.medium + difficultyStats.hard;
 
   // Функция для обработки ошибки загрузки изображения
   function handleImageError(event: Event): void {
@@ -36,7 +24,7 @@
   function formatDate(dateString: string): string {
     try {
       const date = new Date(dateString);
-      return formatDistance(date, new Date() + "Z", { addSuffix: true });
+      return formatDistance(date, new Date(), { addSuffix: true });
     } catch (e) {
       return "Unknown date";
     }
@@ -111,15 +99,15 @@
           <!-- Learning Stats -->
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
             <div class="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg text-center">
-              <p class="text-2xl font-bold text-orange-600">{stats.totalWords}</p>
-              <p class="text-gray-600">Всего слов</p>
+              <p class="text-2xl font-bold text-orange-600">{data.stats.totalWords}</p>
+              <p class="text-gray-600">Всего добавленных слов</p>
             </div>
             <div class="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg text-center">
-              <p class="text-2xl font-bold text-orange-600">{knownWords}</p>
-              <p class="text-gray-600">Categorized Words</p>
+              <p class="text-2xl font-bold text-orange-600">{data.stats.learnedWords}</p>
+              <p class="text-gray-600">Выученные слова</p>
             </div>
             <div class="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg text-center">
-              <p class="text-2xl font-bold text-orange-600">{stats.totalWords > 0 ? Math.round((knownWords / stats.totalWords) * 100) : 0}%</p>
+              <p class="text-2xl font-bold text-orange-600">{data.stats.progress}%</p>
               <p class="text-gray-600">Прогрес</p>
             </div>
           </div>
@@ -129,19 +117,19 @@
             <h3 class="text-lg font-medium text-gray-800 mb-3">Слова по сложности</h3>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div class="bg-green-50 p-3 rounded-lg text-center">
-                <p class="text-xl font-semibold text-green-600">{difficultyStats.easy}</p>
+                <p class="text-xl font-semibold text-green-600">{data.stats.difficultyCounts['Easy'] || 0}</p>
                 <p class="text-gray-600 text-sm">Легкие</p>
               </div>
               <div class="bg-yellow-50 p-3 rounded-lg text-center">
-                <p class="text-xl font-semibold text-yellow-600">{difficultyStats.medium}</p>
+                <p class="text-xl font-semibold text-yellow-600">{data.stats.difficultyCounts['Medium'] || 0}</p>
                 <p class="text-gray-600 text-sm">Средние</p>
               </div>
               <div class="bg-red-50 p-3 rounded-lg text-center">
-                <p class="text-xl font-semibold text-red-600">{difficultyStats.hard}</p>
+                <p class="text-xl font-semibold text-red-600">{data.stats.difficultyCounts['Hard'] || 0}</p>
                 <p class="text-gray-600 text-sm">Сложные</p>
               </div>
               <div class="bg-gray-50 p-3 rounded-lg text-center">
-                <p class="text-xl font-semibold text-gray-600">{difficultyStats.unknown}</p>
+                <p class="text-xl font-semibold text-gray-600">{data.stats.difficultyCounts['Unknown'] || 0}</p>
                 <p class="text-gray-600 text-sm">Не определено</p>
               </div>
             </div>
@@ -166,10 +154,10 @@
       <div class="bg-white rounded-xl p-6 shadow-md border border-orange-100">
         <h2 class="text-2xl font-bold text-gray-800 mb-6">Ваши слова</h2>
         
-        {#if words.length === 0}
+        {#if data.words && data.words.length === 0}
           <div class="text-center py-8">
             <p class="text-gray-500">Вы не добавили ни одного слова</p>
-            <a href="/words/add" class="inline-block mt-4 bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">Add Your First Word</a>
+            <a href="/words" class="inline-block mt-4 bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">Add Your First Word</a>
           </div>
         {:else}
           <div class="overflow-x-auto">
@@ -182,12 +170,12 @@
                 </tr>
               </thead>
               <tbody>
-                {#each words as word, i}
+                {#each data.words || [] as word: UserWordData, i}
                   <tr class={i % 2 === 0 ? 'bg-white' : 'bg-orange-50/30'}>
                     <td class="py-3 px-4 border-t border-orange-100">{word.word}</td>
-                    <td class="py-3 px-4 border-t border-orange-100">{formatDate(word.added_at)}</td>
+                    <td class="py-3 px-4 border-t border-orange-100">{formatDate(typeof word.added_at === 'string' ? word.added_at : word.added_at.toISOString())}</td>
                     <td class="py-3 px-4 border-t border-orange-100 text-center">
-                      <span class={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getDifficultyClasses(word.difficulty)}`}>
+                      <span class={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getDifficultyClasses(word.difficulty || 'Unknown')}`}>
                         {word.difficulty || 'Unknown'}
                       </span>
                     </td>
@@ -205,20 +193,20 @@
     </div>
 
     <!-- Recently Added Words Section -->
-    {#if stats.lastAddedWords && stats.lastAddedWords.length > 0}
+    {#if data.stats.lastAddedWords && data.stats.lastAddedWords.length > 0}
       <div class="mt-8">
         <div class="bg-white rounded-xl p-6 shadow-md border border-orange-100">
           <h2 class="text-2xl font-bold text-gray-800 mb-6">Recently Added Words</h2>
           
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {#each stats.lastAddedWords as word}
+            {#each data.stats.lastAddedWords || [] as word: UserWordData}
               <div class="bg-orange-50 rounded-lg p-4 hover:shadow-md transition-shadow">
                 <h3 class="font-medium text-gray-900">{word.word}</h3>
                 <div class="flex justify-between items-center mt-2">
-                  <span class={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getDifficultyClasses(word.difficulty)}`}>
+                  <span class={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getDifficultyClasses(word.difficulty || 'Unknown')}`}>
                     {word.difficulty || 'Unknown'}
                   </span>
-                  <p class="text-xs text-gray-500">{formatDate(word.added_at)}</p>
+                  <p class="text-xs text-gray-500">{formatDate(typeof word.added_at === 'string' ? word.added_at : word.added_at.toISOString())}</p>
                 </div>
               </div>
             {/each}
